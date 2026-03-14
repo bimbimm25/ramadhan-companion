@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Zakat</title>
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(145deg, #e6f5e9 0%, #ffffff 100%);
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(34, 139, 69, 0.25);
+            box-shadow: 0 10px 25px -5px rgba(0, 80, 20, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-6">
+
+    <div class="w-full max-w-5xl mx-auto my-8">
+
+        <!-- Header -->
+         <div class="mb-2 flex justify-start">
+            <a href="index.html" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-full shadow transition text-sm">
+                <i class="fas fa-arrow-left text-xs"></i> Kembali
+            </a>
+        </div>
+        <div class="text-center mb-8">
+            <div class="inline-block p-3 rounded-full bg-white/70 shadow mb-3">
+                <i class="fas fa-hand-holding-heart text-4xl text-[#1e7b42]"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
+                Kalkulator <span class="text-[#1e7b42]">Zakat</span>
+            </h1>
+            <p class="text-gray-600 mt-2 max-w-2xl mx-auto">Hitung zakat fitrah, maal, dan penghasilan.</p>
+        </div>
+
+        <!-- Info nisab global -->
+        <div class="glass-card rounded-2xl p-5 mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-chart-line text-2xl text-[#1e7b42]"></i>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">Nisab (85 gram emas) saat ini</span>
+                    <div class="text-2xl font-bold text-[#1e7b42]" id="globalNisabDisplay">Rp 93.500.000</div>
+                </div>
+            </div>
+            <div class="text-sm text-gray-600 bg-white/60 p-3 rounded-xl max-w-md">
+                <i class="fas fa-info-circle text-green-700 mr-1"></i>Zakat Maal: 2,5% dari harta yang mencapai nisab dan haul. Zakat penghasilan dianalogikan seperti maal.
+            </div>
+        </div>
+
+        <!-- Grid 3 kolom -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+
+            <!-- ZAKAT FITRAH -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col">
+                <div class="flex items-center gap-2 border-b border-green-200 pb-3 mb-4">
+                    <i class="fas fa-utensils text-2xl text-[#1e7b42]"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Zakat Fitrah</h2>
+                </div>
+                <div class="space-y-4 flex-1">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah jiwa</label>
+                        <input type="number" id="fitrahJiwa" min="1" value="1" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-green-600 focus:ring-2 focus:ring-green-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Metode</label>
+                        <div class="flex gap-3">
+                            <label class="flex items-center gap-1.5 bg-white/60 px-3 py-2 rounded-xl border has-[:checked]:border-green-700">
+                                <input type="radio" name="fitrahTipe" value="beras" checked class="w-4 h-4 text-green-600"> Beras
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-white/60 px-3 py-2 rounded-xl border has-[:checked]:border-green-700">
+                                <input type="radio" name="fitrahTipe" value="uang" class="w-4 h-4 text-green-600"> Uang
+                            </label>
+                        </div>
+                    </div>
+                    <div id="fitrahHargaContainer" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga beras/kg (Rp)</label>
+                        <input type="number" id="fitrahHargaBeras" min="0" value="15000" class="w-full px-4 py-2.5 rounded-xl border border-gray-300">
+                    </div>
+                    <button id="hitungFitrahBtn" class="w-full bg-[#1e7b42] hover:bg-[#166534] text-white font-semibold py-2.5 px-4 rounded-xl shadow transition">
+                        <i class="fas fa-calculator mr-2"></i>Hitung Fitrah
+                    </button>
+                    <!-- Container hasil Fitrah (awalnya hidden) -->
+                    <div id="fitrahResultContainer" class="mt-3 p-3 bg-green-50 rounded-xl text-center hidden">
+                        <span class="text-sm text-gray-600">Hasil:</span>
+                        <div id="fitrahHasil" class="text-xl font-bold text-[#1e7b42]">-</div>
+                        <div id="fitrahDetail" class="text-xs text-gray-500 mt-1"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ZAKAT MAAL -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col">
+                <div class="flex items-center gap-2 border-b border-green-200 pb-3 mb-4">
+                    <i class="fas fa-coins text-2xl text-[#1e7b42]"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Zakat Maal</h2>
+                </div>
+                <div class="space-y-4 flex-1">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Total harta (Rp)</label>
+                        <input type="number" id="maalJumlah" min="0" value="100000000" step="1000000" class="w-full px-4 py-2.5 rounded-xl border border-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga emas/gram (Rp)</label>
+                        <input type="number" id="maalHargaEmas" min="0" value="1100000" step="10000" class="w-full px-4 py-2.5 rounded-xl border border-gray-300">
+                        <p class="text-xs text-gray-500 mt-1">*Nisab 85 gram emas</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-white/60 p-2 rounded-xl">
+                        <input type="checkbox" id="maalHaulCheck" class="w-4 h-4 text-green-600 rounded">
+                        <label for="maalHaulCheck" class="text-sm text-gray-700">Sudah mencapai haul (1 tahun)</label>
+                    </div>
+                    <button id="hitungMaalBtn" class="w-full bg-[#1e7b42] hover:bg-[#166534] text-white font-semibold py-2.5 px-4 rounded-xl shadow transition">
+                        <i class="fas fa-calculator mr-2"></i>Hitung Maal
+                    </button>
+                    <!-- Container hasil Maal (awalnya hidden) -->
+                    <div id="maalResultContainer" class="mt-3 p-3 bg-green-50 rounded-xl hidden">
+                        <div class="text-center">
+                            <span class="text-sm text-gray-600">Hasil:</span>
+                            <div id="maalHasil" class="text-xl font-bold text-[#1e7b42]">-</div>
+                        </div>
+                        <div id="maalDetail" class="text-xs text-gray-600 space-y-1 mt-2 border-t border-green-100 pt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ZAKAT PENGHASILAN -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col">
+                <div class="flex items-center gap-2 border-b border-green-200 pb-3 mb-4">
+                    <i class="fas fa-briefcase text-2xl text-[#1e7b42]"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Zakat Penghasilan</h2>
+                </div>
+                <div class="space-y-4 flex-1">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Penghasilan per bulan (Rp)</label>
+                        <input type="number" id="penghasilanBulanan" min="0" value="15000000" step="500000" class="w-full px-4 py-2.5 rounded-xl border border-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Harga emas/gram (Rp)</label>
+                        <input type="number" id="penghasilanHargaEmas" min="0" value="1100000" class="w-full px-4 py-2.5 rounded-xl border border-gray-300">
+                    </div>
+                    <div class="bg-blue-50/70 p-3 rounded-xl text-xs text-gray-700">
+                        <i class="fas fa-lightbulb text-yellow-600 mr-1"></i>Zakat penghasilan dianalogikan seperti zakat maal. Nishab setara 85 gram emas, kadar 2,5% per bulan jika penghasilan tahunan mencapai nisab.
+                    </div>
+                    <button id="hitungPenghasilanBtn" class="w-full bg-[#1e7b42] hover:bg-[#166534] text-white font-semibold py-2.5 px-4 rounded-xl shadow transition">
+                        <i class="fas fa-calculator mr-2"></i>Hitung Penghasilan
+                    </button>
+                    <!-- Container hasil Penghasilan (awalnya hidden) -->
+                    <div id="penghasilanResultContainer" class="mt-3 p-3 bg-green-50 rounded-xl hidden">
+                        <div class="text-center">
+                            <span class="text-sm text-gray-600">Hasil:</span>
+                            <div id="penghasilanHasil" class="text-xl font-bold text-[#1e7b42]">-</div>
+                        </div>
+                        <div id="penghasilanDetail" class="text-xs text-gray-600 mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center text-xs text-gray-400 border-t border-green-200 pt-4">
+            <p>ⓘ Kalkulator ini menggunakan nisab 85 gram emas. Zakat fitrah = 2,5 kg beras/jiwa. Zakat maal & penghasilan = 2,5% jika mencapai nisab.</p>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            function formatRupiah(angka) {
+                return Math.round(angka).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+
+            // Update nisab global berdasarkan harga emas dari maal
+            const maalHargaEmas = document.getElementById('maalHargaEmas');
+            const globalNisabDisplay = document.getElementById('globalNisabDisplay');
+            function updateGlobalNisab() {
+                const hargaEmasMaal = parseFloat(maalHargaEmas.value) || 0;
+                const nisabGlobal = 85 * hargaEmasMaal;
+                globalNisabDisplay.innerText = 'Rp ' + formatRupiah(nisabGlobal);
+                return nisabGlobal;
+            }
+            maalHargaEmas.addEventListener('input', updateGlobalNisab);
+
+            // ========== FITRAH ==========
+            const fitrahJiwa = document.getElementById('fitrahJiwa');
+            const fitrahTipeBeras = document.querySelector('input[name="fitrahTipe"][value="beras"]');
+            const fitrahTipeUang = document.querySelector('input[name="fitrahTipe"][value="uang"]');
+            const fitrahHargaContainer = document.getElementById('fitrahHargaContainer');
+            const fitrahHargaBeras = document.getElementById('fitrahHargaBeras');
+            const fitrahHasil = document.getElementById('fitrahHasil');
+            const fitrahDetail = document.getElementById('fitrahDetail');
+            const fitrahResultContainer = document.getElementById('fitrahResultContainer');
+
+            function toggleHargaBeras() {
+                fitrahHargaContainer.classList.toggle('hidden', !fitrahTipeUang.checked);
+            }
+            fitrahTipeBeras.addEventListener('change', toggleHargaBeras);
+            fitrahTipeUang.addEventListener('change', toggleHargaBeras);
+            toggleHargaBeras();
+
+            function hitungFitrah() {
+                let jiwa = parseInt(fitrahJiwa.value) || 1;
+                if (jiwa < 1) jiwa = 1;
+                const pakaiUang = fitrahTipeUang.checked;
+                const berasTotal = jiwa * 2.5;
+                if (pakaiUang) {
+                    let harga = parseFloat(fitrahHargaBeras.value) || 0;
+                    if (harga < 0) harga = 0;
+                    const totalRp = berasTotal * harga;
+                    fitrahHasil.innerText = 'Rp ' + formatRupiah(totalRp);
+                    fitrahDetail.innerText = `${jiwa} jiwa × 2,5 kg × Rp ${formatRupiah(harga)} = Rp ${formatRupiah(totalRp)}`;
+                } else {
+                    fitrahHasil.innerText = berasTotal.toFixed(2) + ' kg';
+                    fitrahDetail.innerText = `${jiwa} jiwa × 2,5 kg = ${berasTotal.toFixed(2)} kg beras`;
+                }
+                // Tampilkan container hasil
+                fitrahResultContainer.classList.remove('hidden');
+            }
+            document.getElementById('hitungFitrahBtn').addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                hitungFitrah(); 
+            });
+
+            // ========== MAAL ==========
+            const maalJumlah = document.getElementById('maalJumlah');
+            const maalHaulCheck = document.getElementById('maalHaulCheck');
+            const maalHasil = document.getElementById('maalHasil');
+            const maalDetail = document.getElementById('maalDetail');
+            const maalResultContainer = document.getElementById('maalResultContainer');
+
+            function hitungMaal() {
+                let harta = parseFloat(maalJumlah.value) || 0;
+                let hargaEmas = parseFloat(maalHargaEmas.value) || 0;
+                if (harta < 0) harta = 0;
+                if (hargaEmas < 0) hargaEmas = 0;
+
+                const nisab = 85 * hargaEmas;
+                const haulTerpenuhi = maalHaulCheck.checked;
+                let zakat = 0;
+                let status = '';
+
+                if (harta >= nisab && nisab > 0 && haulTerpenuhi) {
+                    zakat = 0.025 * harta;
+                    status = `WAJIB (mencapai nisab & haul)`;
+                } else if (!haulTerpenuhi) {
+                    status = `Belum haul (belum 1 tahun)`;
+                } else if (harta < nisab) {
+                    status = `Harta kurang dari nisab (Rp ${formatRupiah(nisab)})`;
+                } else {
+                    status = 'Tidak wajib';
+                }
+
+                if (zakat > 0) {
+                    maalHasil.innerText = 'Rp ' + formatRupiah(zakat);
+                } else {
+                    maalHasil.innerText = 'Rp 0 (belum wajib)';
+                }
+
+                maalDetail.innerHTML = `
+                    <div>💵 Harta: Rp ${formatRupiah(harta)}</div>
+                    <div>🏅 Nisab: Rp ${formatRupiah(nisab)} (85g × Rp ${formatRupiah(hargaEmas)})</div>
+                    <div>⏳ Haul: ${haulTerpenuhi ? '✔️ Terpenuhi' : '❌ Belum'}</div>
+                    <div class="font-medium text-gray-800 mt-1">📌 ${status}</div>
+                    ${zakat > 0 ? '<div class="text-green-700">✓ Zakat: Rp ' + formatRupiah(zakat) + '</div>' : ''}
+                `;
+                // Tampilkan container hasil
+                maalResultContainer.classList.remove('hidden');
+            }
+            document.getElementById('hitungMaalBtn').addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                hitungMaal(); 
+            });
+
+            // ========== PENGHASILAN ==========
+            const penghasilanBulanan = document.getElementById('penghasilanBulanan');
+            const penghasilanHargaEmas = document.getElementById('penghasilanHargaEmas');
+            const penghasilanHasil = document.getElementById('penghasilanHasil');
+            const penghasilanDetail = document.getElementById('penghasilanDetail');
+            const penghasilanResultContainer = document.getElementById('penghasilanResultContainer');
+
+            function hitungPenghasilan() {
+                let penghasilan = parseFloat(penghasilanBulanan.value) || 0;
+                let hargaEmas = parseFloat(penghasilanHargaEmas.value) || 0;
+                if (penghasilan < 0) penghasilan = 0;
+                if (hargaEmas < 0) hargaEmas = 0;
+
+                const penghasilanTahunan = penghasilan * 12;
+                const nisabTahunan = 85 * hargaEmas;
+                let zakatBulanan = 0;
+                let penjelasan = '';
+
+                if (penghasilanTahunan >= nisabTahunan && nisabTahunan > 0) {
+                    zakatBulanan = 0.025 * penghasilan;
+                    penjelasan = `Penghasilan setahun Rp ${formatRupiah(penghasilanTahunan)} mencapai nisab tahunan Rp ${formatRupiah(nisabTahunan)}. Zakat per bulan 2,5% dari penghasilan.`;
+                } else {
+                    penjelasan = `Penghasilan setahun Rp ${formatRupiah(penghasilanTahunan)} < nisab Rp ${formatRupiah(nisabTahunan)}. Belum wajib zakat penghasilan.`;
+                }
+
+                if (zakatBulanan > 0) {
+                    penghasilanHasil.innerText = 'Rp ' + formatRupiah(zakatBulanan) + ' /bulan';
+                } else {
+                    penghasilanHasil.innerText = 'Rp 0 (belum wajib)';
+                }
+
+                penghasilanDetail.innerHTML = `
+                    <div>📆 Penghasilan/bulan: Rp ${formatRupiah(penghasilan)}</div>
+                    <div>📈 Penghasilan/tahun: Rp ${formatRupiah(penghasilanTahunan)}</div>
+                    <div>⚖️ Nisab tahunan: Rp ${formatRupiah(nisabTahunan)}</div>
+                    <div class="mt-1 text-gray-700">${penjelasan}</div>
+                    ${zakatBulanan > 0 ? '<div class="text-green-700 font-medium">✓ Zakat per bulan: Rp ' + formatRupiah(zakatBulanan) + '</div>' : ''}
+                `;
+                // Tampilkan container hasil
+                penghasilanResultContainer.classList.remove('hidden');
+            }
+            document.getElementById('hitungPenghasilanBtn').addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                hitungPenghasilan(); 
+            });
+
+            // Inisialisasi: hanya update nisab global, tidak menghitung atau menampilkan hasil apapun
+            window.addEventListener('load', function() {
+                updateGlobalNisab();
+                // Semua container hasil sudah hidden secara default di HTML
+            });
+        })();
+    </script>
+</body>
+</html>

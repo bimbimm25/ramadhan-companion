@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Tasbih digital</title>
+    <!-- Tailwind + font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&family=Amiri:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <!-- Font Awesome untuk ikon panah (opsional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        .arabic {
+            font-family: "Amiri", serif;
+        }
+
+        .circle {
+            transition: all 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .circle:active {
+            transform: scale(0.98);
+            box-shadow: 0 20px 30px -8px #14532d;
+        }
+
+        .target-chip {
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .target-chip.active {
+            background-color: #065f46;
+            color: white;
+            border-color: #065f46;
+        }
+
+        .arrow-btn {
+            transition: all 0.2s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 9999px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+        }
+
+        .arrow-btn:active {
+            background: #e5e7eb;
+            transform: scale(0.95);
+        }
+        /* Pastikan body tidak bisa scroll */
+        body {
+            overflow: hidden;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-b from-emerald-50 via-teal-50 to-emerald-100 flex items-center justify-center p-2 overflow-hidden">
+    <div class="max-w-md w-full">
+        <!-- Judul Subhanallah (berubah sesuai dzikir aktif) -->
+        <div class="mb-2 flex justify-start">
+            <a href="index.html" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-full shadow transition text-sm">
+                <i class="fas fa-arrow-left text-xs"></i> Kembali
+            </a>
+        </div>
+        <h1 id="mainTitle" class="text-2xl font-bold text-center text-emerald-900 mb-1 tracking-tight">
+            Subhanallah
+        </h1>
+
+        <!-- Lingkaran besar (ketuk untuk dzikir) - DIPERKECIL -->
+        <div id="tapCircle"
+            class="circle w-48 h-48 sm:w-56 sm:h-56 mx-auto my-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-2xl flex flex-col items-center justify-center cursor-pointer border-4 border-white/40"
+            style="box-shadow: 0 20px 30px -10px #14532d">
+            <!-- angka hitungan (current / target) - DIPERKECIL -->
+            <div class="text-center">
+                <span id="displayCurrent" class="text-5xl sm:text-6xl font-black text-white drop-shadow-lg">0</span>
+                <span class="text-2xl font-medium text-emerald-100 mx-0.5">/</span>
+                <span id="displayTarget" class="text-4xl sm:text-5xl font-semibold text-emerald-100 drop-shadow">33</span>
+            </div>
+            <!-- teks arab sesuai dzikir aktif - DIPERKECIL -->
+            <div id="arabicText" class="arabic text-2xl sm:text-3xl text-white/95 mt-1 drop-shadow-md">
+                سُبْحَانَ ٱللَّٰهِ
+            </div>
+            <!-- terjemahan - DIPERKECIL -->
+            <div id="translationText" class="text-emerald-100 text-xs mt-0.5 tracking-wide">
+                "Glory be to Allah"
+            </div>
+        </div>
+
+        <!-- Tip: tap lingkaran / spasi -->
+        <p class="text-center text-xs text-emerald-700/80 mb-2 italic">
+            <br>
+        </p>
+
+        <!-- Baris pemilih dzikir dengan panah kiri/kanan - DIPERKECIL -->
+        <div class="flex items-center justify-center gap-2 mb-3">
+            <span class="text-emerald-800 font-medium text-sm">Dzikir :</span>
+            <div class="arrow-btn" id="prevDzikir">
+                <i class="fas fa-chevron-left text-emerald-700 text-sm"></i>
+            </div>
+            <span id="currentDzikirLabel"
+                class="bg-white/80 px-4 py-1.5 rounded-full text-emerald-900 font-semibold min-w-[130px] text-center shadow-sm border border-emerald-200 text-sm">Subhanallah</span>
+            <div class="arrow-btn" id="nextDzikir">
+                <i class="fas fa-chevron-right text-emerald-700 text-sm"></i>
+            </div>
+        </div>
+
+        <!-- Pilihan target: 33 · 99 · ∞ (tak terbatas) - DIPERKECIL -->
+        <div class="flex justify-center gap-3 mb-4">
+            <button
+                class="target-chip px-5 py-1.5 rounded-full text-base font-semibold border-2 border-emerald-700 bg-white text-emerald-800 hover:bg-emerald-50 transition-all active"
+                data-target="33">
+                33
+            </button>
+            <button
+                class="target-chip px-5 py-1.5 rounded-full text-base font-semibold border-2 border-emerald-700 bg-white text-emerald-800 hover:bg-emerald-50 transition-all"
+                data-target="99">
+                99
+            </button>
+            <button
+                class="target-chip px-5 py-1.5 rounded-full text-base font-semibold border-2 border-emerald-700 bg-white text-emerald-800 hover:bg-emerald-50 transition-all"
+                data-target="infinity">
+                <span class="flex items-center gap-1">∞<span class="text-xs ml-0.5">tak terbatas</span></span>
+            </button>
+        </div>
+
+        <!-- Tombol tambah (alternatif) & reset - DIPERKECIL -->
+        <button id="addBtn"
+            class="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-lg py-3 rounded-xl shadow-lg transition-all active:scale-[0.98] font-medium">
+            + Tambah Dzikir
+        </button>
+        <button id="resetBtn"
+            class="w-full text-emerald-800 text-sm py-2 mt-2 border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors">
+            ↻ Reset hitungan
+        </button>
+
+        <!-- Pesan status (selesai / informasi) -->
+        <div id="message" class="h-5 text-center text-emerald-800 font-medium text-xs mt-2"></div>
+    </div>
+
+    <script>
+        (function () {
+            // Elemen-elemen DOM
+            const circle = document.getElementById("tapCircle");
+            const displayCurrent = document.getElementById("displayCurrent");
+            const displayTarget = document.getElementById("displayTarget");
+            const arabicSpan = document.getElementById("arabicText");
+            const translationSpan = document.getElementById("translationText");
+            const mainTitle = document.getElementById("mainTitle");
+            const currentDzikirLabel =
+                document.getElementById("currentDzikirLabel");
+            const prevBtn = document.getElementById("prevDzikir");
+            const nextBtn = document.getElementById("nextDzikir");
+            const targetBtns = document.querySelectorAll(".target-chip");
+            const addBtn = document.getElementById("addBtn");
+            const resetBtn = document.getElementById("resetBtn");
+            const messageDiv = document.getElementById("message");
+
+            // ===== DATA DZIKIR =====
+            const dzikirList = [
+                {
+                    label: "Subhanallah",
+                    arabic: "سُبْحَانَ ٱللَّٰهِ",
+                    translation: "Maha suci Allah",
+                    title: "Subhanallah",
+                },
+                {
+                    label: "Alhamdulillah",
+                    arabic: "ٱلْحَمْدُ لِلَّٰهِ",
+                    translation: "Segala puji bagi Allah",
+                    title: "Alhamdulillah",
+                },
+                {
+                    label: "Allahu Akbar",
+                    arabic: "ٱللَّٰهُ أَكْبَرُ",
+                    translation: "Allah maha besar",
+                    title: "Allahu Akbar",
+                },
+                {
+                    label: "Astaghfirullah",
+                    arabic: "أَسْتَغْفِرُ ٱللَّٰهَ",
+                    translation: "Aku memohon ampun kepada Allah",
+                    title: "Astaghfirullah",
+                },
+                {
+                    label: "Dzikir",
+                    arabic: "اَلذِّكْرُ",
+                    translation: "Mengingat, Menyebut Allah",
+                    title: "Dzikir",
+                },
+            ];
+
+            let currentDzikirIndex = 0; // Subhanallah
+            let currentCount = 0;
+            // Tipe target: bisa number 33, 99, atau 'infinity'
+            let targetType = 33;
+
+            // ----- fungsi untuk memperbarui tampilan dzikir (arab, terjemah, label) -----
+            function updateDzikirUI() {
+                const d = dzikirList[currentDzikirIndex];
+                arabicSpan.textContent = d.arabic;
+                translationSpan.textContent = `"${d.translation}"`;
+                mainTitle.textContent = d.title;
+                currentDzikirLabel.textContent = d.label;
+            }
+
+            // ----- fungsi memperbarui angka dan pesan berdasarkan targetType & currentCount -----
+            function refreshCounter() {
+                displayCurrent.textContent = currentCount;
+
+                // Tampilan target: jika infinity, tampilkan simbol ∞
+                if (targetType === "infinity") {
+                    displayTarget.innerHTML = "∞";
+                    // sembunyikan pesan "selesai" karena tak terbatas
+                    messageDiv.innerHTML = "";
+                    circle.classList.remove(
+                        "ring-4",
+                        "ring-yellow-300",
+                        "ring-offset-2",
+                    );
+                } else {
+                    displayTarget.textContent = targetType;
+                    // Cek apakah sudah mencapai target (hanya jika targetType angka)
+                    if (currentCount >= targetType) {
+                        messageDiv.innerHTML = "✅ Alhamdulillah · selesai";
+                        circle.classList.add(
+                            "ring-4",
+                            "ring-yellow-300",
+                            "ring-offset-2",
+                        );
+                    } else {
+                        messageDiv.innerHTML = "";
+                        circle.classList.remove(
+                            "ring-4",
+                            "ring-yellow-300",
+                            "ring-offset-2",
+                        );
+                    }
+                }
+            }
+
+            // ----- sinkron kelas aktif untuk tombol target -----
+            function setActiveTarget(activeValue) {
+                targetBtns.forEach((btn) => {
+                    const btnTarget = btn.dataset.target; // string: '33', '99', 'infinity'
+                    if (
+                        btnTarget === String(activeValue) ||
+                        (activeValue === "infinity" && btnTarget === "infinity")
+                    ) {
+                        btn.classList.add(
+                            "active",
+                            "bg-emerald-700",
+                            "text-white",
+                            "border-emerald-700",
+                        );
+                        btn.classList.remove("bg-white", "text-emerald-800");
+                    } else {
+                        btn.classList.remove(
+                            "active",
+                            "bg-emerald-700",
+                            "text-white",
+                            "border-emerald-700",
+                        );
+                        btn.classList.add("bg-white", "text-emerald-800");
+                    }
+                });
+            }
+
+            // ----- ganti target (reset hitungan) -----
+            function changeTarget(newTarget) {
+                // newTarget: number (33,99) atau 'infinity'
+                if (newTarget !== targetType) {
+                    targetType = newTarget;
+                    currentCount = 0;
+                    setActiveTarget(newTarget);
+                    refreshCounter();
+                } else {
+                    // Jika target sama, tetap reset? biar konsisten dengan kebiasaan: tidak reset
+                    // Tapi kita hanya aktifkan visualnya saja tanpa reset
+                    setActiveTarget(newTarget);
+                }
+            }
+
+            // ----- tambah hitungan -----
+            function increment() {
+                if (targetType === "infinity") {
+                    // tanpa batas
+                    currentCount++;
+                    refreshCounter();
+                    if (navigator.vibrate) navigator.vibrate(10);
+                } else {
+                    // target terbatas
+                    if (currentCount < targetType) {
+                        currentCount++;
+                        refreshCounter();
+                        if (navigator.vibrate) navigator.vibrate(10);
+                    } else {
+                        // sudah penuh
+                        messageDiv.innerHTML = "🔔 target telah dicapai";
+                        if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+                        setTimeout(() => {
+                            if (currentCount >= targetType && targetType !== "infinity") {
+                                messageDiv.innerHTML = "✅ Alhamdulillah · selesai";
+                            } else {
+                                messageDiv.innerHTML = "";
+                            }
+                        }, 1200);
+                    }
+                }
+            }
+
+            // ----- reset hitungan ke 0 -----
+            function resetCount() {
+                currentCount = 0;
+                refreshCounter();
+                messageDiv.innerHTML = "";
+            }
+
+            // ----- ganti dzikir (prev/next) -----
+            function changeDzikir(delta) {
+                currentDzikirIndex =
+                    (currentDzikirIndex + delta + dzikirList.length) %
+                    dzikirList.length;
+                updateDzikirUI();
+                // Tidak reset hitungan saat ganti dzikir (opsional, biarkan tetap)
+            }
+
+            // ----- EVENT LISTENERS -----
+            circle.addEventListener("click", increment);
+            addBtn.addEventListener("click", increment);
+
+            // tombol target
+            targetBtns.forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    const val = this.dataset.target;
+                    if (val === "infinity") {
+                        changeTarget("infinity");
+                    } else {
+                        changeTarget(parseInt(val, 10));
+                    }
+                });
+            });
+
+            // reset
+            resetBtn.addEventListener("click", resetCount);
+
+            // panah kiri/kanan
+            prevBtn.addEventListener("click", () => changeDzikir(-1));
+            nextBtn.addEventListener("click", () => changeDzikir(1));
+
+            // spasi
+            window.addEventListener("keydown", function (e) {
+                if (
+                    e.code === "Space" &&
+                    !["INPUT", "TEXTAREA", "BUTTON"].includes(
+                        document.activeElement.tagName,
+                    )
+                ) {
+                    e.preventDefault();
+                    increment();
+                }
+            });
+
+            // inisialisasi
+            updateDzikirUI();
+            setActiveTarget(33);
+            targetType = 33;
+            currentCount = 0;
+            refreshCounter();
+        })();
+    </script>
+</body>
+</html>

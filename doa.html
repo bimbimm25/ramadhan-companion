@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kumpulan Doa Harian</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .arabic-font {
+            font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade', serif;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <!-- Header -->
+        <div class="mb-6 flex justify-start">
+            <a href="index.html" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold px-4 py-2 rounded-full shadow transition">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-800 flex items-center justify-center gap-2">
+                <span>📖</span> Kumpulan Doa Harian
+            </h1>
+            <p class="text-slate-600 mt-2">
+                Sumber: <a href="https://equran.id/doa" target="_blank" class="text-sky-600 underline underline-offset-2">EQuran.id</a> · 227 doa dengan referensi shahih, lengkap dengan teks Arab, latin, arti, dan sumbernya.
+            </p>
+            <div class="flex justify-center gap-4 mt-4" id="statsContainer">
+                <span class="bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full shadow-sm border border-slate-200 text-sky-800 font-medium inline-flex items-center gap-1">
+                    📚 <span id="totalDoa">0</span> Doa
+                </span>
+                <span class="bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full shadow-sm border border-slate-200 text-sky-800 font-medium inline-flex items-center gap-1">
+                    🏷️ <span id="totalKategori">0</span> Kategori
+                </span>
+            </div>
+        </div>
+
+        <!-- Filter dropdown (hidden until data loaded) -->
+        <div id="filterSection" class="bg-white rounded-3xl p-6 shadow-md border border-slate-200 mb-8 hidden">
+            <div class="flex items-center gap-3 mb-4">
+                <h2 class="text-xl font-semibold text-sky-700">🔖 Pilih Kategori</h2>
+                <span id="activeCatLabel" class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-sm font-medium">semua</span>
+            </div>
+            <select id="categoryDropdown" class="w-full p-3 rounded-full border border-slate-300 bg-slate-50 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition">
+                <option value="Semua">Semua Kategori</option>
+            </select>
+        </div>
+
+        <!-- Info jumlah tampil (hidden until data loaded) -->
+        <div id="resultInfo" class="flex justify-between items-center mb-4 hidden">
+            <p class="bg-sky-50 text-sky-700 px-4 py-2 rounded-full text-sm">
+                📌 <span id="shownCount">0</span> doa ditampilkan
+            </p>
+        </div>
+
+        <!-- Daftar doa (akan diisi oleh JS, termasuk loading) -->
+        <div id="doaContainer" class="space-y-6"></div>
+
+        <!-- Footer -->
+        <footer class="mt-16 text-center text-slate-500 text-sm border-t border-dashed border-slate-300 pt-8">
+            <p>Data doa disediakan oleh <a href="https://equran.id/" target="_blank" class="text-sky-600 font-medium">EQuran.id</a> </p>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            // Konfigurasi
+            const BASE_URL = 'https://equran.id/api/doa';
+            const MAX_ID = 227;
+            const DELAY_MS = 120;
+
+            let allDoa = [];
+            let uniqueCategories = ['Semua'];
+            let activeCategory = 'Semua';
+
+            const doaContainer = document.getElementById('doaContainer');
+            const filterSection = document.getElementById('filterSection');
+            const resultInfo = document.getElementById('resultInfo');
+            const categoryDropdown = document.getElementById('categoryDropdown');
+            const totalDoaSpan = document.getElementById('totalDoa');
+            const totalKategoriSpan = document.getElementById('totalKategori');
+            const activeCatLabel = document.getElementById('activeCatLabel');
+            const shownCountSpan = document.getElementById('shownCount');
+
+            // Elemen untuk loading progress
+            let loadingProgressElement = null;
+
+            async function fetchDoaById(id) {
+                try {
+                    const response = await fetch(`${BASE_URL}/${id}`);
+                    if (!response.ok) {
+                        if (response.status === 404) return null;
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    const result = await response.json();
+                    if (result.status === "success" && result.data) {
+                        return result.data;
+                    }
+                    return null;
+                } catch (error) {
+                    console.error(`Gagal ID ${id}:`, error);
+                    return null;
+                }
+            }
+
+            async function fetchAllDoaSequentially() {
+                const doaList = [];
+                let successCount = 0;
+                for (let id = 1; id <= MAX_ID; id++) {
+                    const doa = await fetchDoaById(id);
+                    if (doa) {
+                        doaList.push(doa);
+                        successCount++;
+                    }
+                    // Update progress setiap kali selesai satu ID (baik berhasil atau tidak)
+                    if (loadingProgressElement) {
+                        loadingProgressElement.innerText = `Memuat ${successCount}/${MAX_ID} doa...`;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+                }
+                return doaList;
+            }
+
+            function extractCategories(doaList) {
+                const catSet = new Set();
+                catSet.add('Semua');
+                doaList.forEach(doa => {
+                    if (doa.grup && typeof doa.grup === 'string' && doa.grup.trim()) {
+                        catSet.add(doa.grup.trim());
+                    }
+                });
+                return Array.from(catSet).sort((a, b) => a.localeCompare(b, 'id'));
+            }
+
+            function renderDropdown() {
+                if (!uniqueCategories.length) return;
+                categoryDropdown.innerHTML = '';
+                uniqueCategories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    if (cat === activeCategory) option.selected = true;
+                    categoryDropdown.appendChild(option);
+                });
+
+                categoryDropdown.addEventListener('change', (e) => {
+                    activeCategory = e.target.value;
+                    activeCatLabel.innerText = activeCategory === 'Semua' ? 'semua' : activeCategory;
+                    renderDoaByCategory(activeCategory);
+                });
+
+                if (totalKategoriSpan) {
+                    totalKategoriSpan.innerText = uniqueCategories.length - 1;
+                }
+            }
+
+            function renderDoaByCategory(category) {
+                const filtered = (category === 'Semua') ? allDoa : allDoa.filter(doa => doa.grup === category);
+                if (shownCountSpan) shownCountSpan.innerText = filtered.length;
+
+                if (filtered.length === 0) {
+                    doaContainer.innerHTML = `<div class="text-center py-20 text-slate-500 bg-white rounded-3xl">Tidak ada doa untuk kategori "${category}"</div>`;
+                    return;
+                }
+
+                let cardsHtml = '';
+                filtered.forEach(doa => {
+                    cardsHtml += createDoaCard(doa);
+                });
+                doaContainer.innerHTML = cardsHtml;
+            }
+
+            function createDoaCard(doa) {
+                const title = doa.nama || 'Doa';
+                const arab = doa.ar || '';
+                const latin = doa.tr || '';
+                const arti = doa.idn || '';
+                const sourceText = doa.tentang || '';
+                const kategori = doa.grup || '';
+                const tags = doa.tag || [];
+
+                const catBadge = kategori 
+                    ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold">${escapeHtml(kategori)}</span>` 
+                    : '';
+
+                let tagsHtml = '';
+                if (Array.isArray(tags) && tags.length) {
+                    tagsHtml = '<div class="flex flex-wrap gap-1 mt-4">' + 
+                        tags.slice(0, 10).map(t => `<span class="bg-sky-50 text-sky-700 px-3 py-1 rounded-full text-xs">#${escapeHtml(t)}</span>`).join('') + 
+                        '</div>';
+                }
+
+                return `
+                    <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-200 hover:shadow-lg transition">
+                        <div class="flex flex-wrap items-baseline gap-3 mb-4">
+                            <h3 class="text-2xl md:text-3xl font-bold text-sky-800">${escapeHtml(title)}</h3>
+                            ${catBadge}
+                        </div>
+                        <div class="arabic-font text-3xl md:text-4xl text-right leading-loose bg-sky-50 p-5 rounded-2xl border border-sky-100 mb-4">
+                            ${arab}
+                        </div>
+                        ${latin ? `<div class="italic text-sky-600 bg-sky-50/50 p-3 rounded-xl border-l-4 border-sky-400 mb-4">${escapeHtml(latin)}</div>` : ''}
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 mb-4">
+                            <strong class="text-sky-700 block mb-1">Artinya:</strong>
+                            <p class="text-slate-700">${escapeHtml(arti)}</p>
+                        </div>
+                        ${sourceText ? `<div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-xl text-slate-700 text-sm leading-relaxed whitespace-pre-line">📚 ${escapeHtml(sourceText)}</div>` : ''}
+                        ${tagsHtml}
+                    </div>
+                `;
+            }
+
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            async function init() {
+                // Tampilkan loading spinner dengan progress
+                doaContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 text-slate-500">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-700 mb-4"></div>
+                        <p id="loadingProgress">Memuat 0/${MAX_ID} doa...</p>
+                    </div>
+                `;
+                loadingProgressElement = document.getElementById('loadingProgress');
+                filterSection.classList.add('hidden');
+                resultInfo.classList.add('hidden');
+
+                allDoa = await fetchAllDoaSequentially();
+
+                if (allDoa.length > 0) {
+                    uniqueCategories = extractCategories(allDoa);
+                    activeCategory = 'Semua';
+
+                    renderDropdown();
+                    filterSection.classList.remove('hidden');
+                    resultInfo.classList.remove('hidden');
+                    renderDoaByCategory('Semua');
+
+                    if (totalDoaSpan) totalDoaSpan.innerText = allDoa.length;
+                    if (activeCatLabel) activeCatLabel.innerText = 'semua';
+                } else {
+                    doaContainer.innerHTML = '<div class="text-center py-20 text-slate-500 bg-white rounded-3xl">Gagal mengambil data doa. Coba refresh halaman.</div>';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>
